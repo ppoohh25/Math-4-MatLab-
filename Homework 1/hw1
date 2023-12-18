@@ -1,0 +1,90 @@
+clear
+syms n t w T
+a0 = 1/T*(int(-1,t,[-T/2 -T/4])+int(1,t,[-T/4 T/4])+int(-1,t,[T/4 T/2]))
+Find an
+an = 2/T*(int(-1*cos(n*w*t),t,[-T/2 -T/4])+int(cos(n*w*t),t,[-T/4 T/4])+int(-1*cos(n*w*t),t,[T/4 T/2]))
+Find first term
+ft = subs(-2/T*int(cos(n*w*t),t,[-T/2 -T/4]),w*T,2*pi)
+Find second term
+st = subs(2/T*int(cos(n*w*t),t,[-T/4 T/4]),w*T,2*pi)
+Find third term
+tt = subs(-2/T*int(cos(n*w*t),t,[T/4 T/2]),w*T,2*pi)
+sum of all term
+s = zeros(8,1)
+for n = 1:8
+    ft = subs(-2/T*int(cos(n*w*t),t,[-T/2 -T/4]),w*T,2*pi)
+    st = subs(2/T*int(cos(n*w*t),t,[-T/4 T/4]),w*T,2*pi)
+    tt = subs(-2/T*int(cos(n*w*t),t,[T/4 T/2]),w*T,2*pi)
+    s(n) = ft+st+tt
+end
+Plot Graph
+subplot(2,2,1)
+x = -pi:1/1000:pi
+plot(x,s(1)*cos(x))
+title("n = 1")
+
+subplot(2,2,2)
+plot(x,s(1)*cos(x)+s(3)*cos(3*x))
+title("n = 3")
+
+subplot(2,2,3)
+plot(x,s(1)*cos(x)+s(3)*cos(3*x)+s(5)*cos(5*x))
+title("n = 5")
+
+subplot(2,2,4)
+plot(x,s(1)*cos(x)+s(3)*cos(3*x)+s(5)*cos(5*x)+s(7)*cos(7*x))
+title("n = 7")
+------------------------------------------------------------------------------------------------------
+
+clear
+syms T t f(t) t0 n w
+
+a0 = 1/T*int(f(t),t,[t0 t0+T]) == 1/T*int(f(t),t,[-T/2 T/2]) == 1/T*int(1,t,[-T/4 T/4])
+An even function exhibits symmetry around the vertical axis at t= 0 so that f(t) = f(-t)
+bn = 2/T*int(f(t)*sin(n*w*t),t,[t0 t0+T]) == 2/T*int(1*sin(n*w*t),t,[-T/4 T/4])
+Determine only an
+an = subs(2/T*int(1*cos(n*w*t),t,[-T/4 T/4]),T*w,2*pi)
+n 1 ---> 8
+k = zeros(8,1)
+for n = 1:8
+    k(n) = subs(2/T*int(1*cos(n*w*t),t,[-T/4 T/4]),T*w,2*pi)
+end
+Plot
+figure;
+x = -pi:1/1000:pi
+y = 1/2+k(1)*cos(x)+k(3)*cos(3*x)+k(5)*cos(5*x)+k(7)*cos(7*x)
+plot(x,y)
+------------------------------------------------------------------------------------------------------
+
+clear
+syms t n
+fm = 4
+T = pi/2
+w = 2*pi/T
+ft = eval(fm/(T/4)*t)
+All an = 0 and bn = 0 for even values of n and a0 = 0
+bn = 8/T*int(ft*sin(n*w*t),t,[0 T/4])
+bn = 32/((pi^2)*n^2)*sin(n*pi/2) %for odd n
+ft = symsum(bn*sin(n*w*t),n,1,7)
+Plot
+x = -pi:1/100:pi
+plot(x,symsum(32/((pi^2)*n^2)*sin(n*pi/2)*sin(n*w*x),n,1,7))
+------------------------------------------------------------------------------------------------------
+
+clear
+syms x n L
+a)
+a0 = 2/L*int(x^2,x,[0 L])
+an = 2/L*int(x^2*cos(n*pi*x/L),x,[0 L])
+fx = a0 + an*cos(n*pi*x/L)
+% change n 
+b)
+bn = 2/L*int(x^2*sin(n*pi*x/L),x,[0 L])
+f1 = bn*sin(n*pi*x/L)
+% change n
+c)
+a0 = 2/L*int(x^2,x,[0 L])
+an = 2/L*int(x^2*cos(2*n*pi*x/L),x,[0 L])
+bn = 2/L*int(x^2*sin(2*n*pi*x/L),x,[0 L])
+f = a0 +an*cos(2*n*pi*x/L) + bn*sin(2*n*pi*x/L)
+------------------------------------------------------------------------------------------------------
