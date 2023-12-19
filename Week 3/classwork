@@ -1,0 +1,92 @@
+
+clear
+clf
+syms u(x,t) x k t L
+assume([L k],"positive")
+PDE
+Eq = k*diff(u,x,2) == diff(u,t)
+Seperate Var.
+syms X(x) T(t)
+SepVar = subs(Eq,u(x,t),X(x)*T(t))
+SepVar = SepVar/(k*T(t)*X(x))
+Boundary condition
+BC0 = u(0,t) == 0; BCL = u(L,t) == 0;
+Seperation for BC
+BCx0 = subs(BC0,u(0,t),X(0)*T(t)/T(t))
+BCxL = subs(BCL,u(L,t),X(L)*T(t)/T(t))
+Seperate ODEs introduce constant(Lambda)^2
+var = children(SepVar);
+syms lambda;
+assume(lambda,"positive");
+eqX = var(1) == -lambda^2
+eqT = var(2) == -lambda^2
+T(t,lambda) = dsolve(eqT)
+X(x,lambda) = dsolve(eqX,BCx0)
+constantX = setdiff(symvar(X(x,lambda)),sym(['C',x,lambda]));
+X(x,lambda) = subs(-X(x,lambda),constantX,sym('C2'))
+Slove the right boundary condition wrt. to lambda:X(L) = 0
+sln = X(L,lambda);
+[lambda,parameters,condition] = solve(sln == 0,lambda,"ReturnConditions",true)
+Add an arbittrary multiplier (replace l with n)
+n = sym("n",["integer","positive"]);
+lambda = subs(lambda,parameters,n)
+Replace lambda = n*Pi/L and b_n = C2
+syms b_n ustruct(x,t,n)
+expT(t,n) = subs(T(t,lambda),[lambda,sym('C1')],[lambda,sym('1')]);
+sinX(x,n) = subs(X(x,lambda),[lambda,sym('C2')],[lambda,b_n]);
+Back to product solution
+ustruct(x,t,n) = collect(sinX(x,n)*expT(t,n),["sin","exp"])
+From symbolic to function handle
+SinXExpTfun = matlabFunction(ustruct)
+syms x m n L
+assume([m,n],["integer","positive"]); assume(L,"positive"); assumeAlso(not(L == pi));
+lambda(n) = n*pi/L;
+e(n) = sin(lambda(n)*x)
+check_orthogonality = int(e(n)*e(m),0,L)
+Emabed Fourier coefficients into Heat structure to get solution
+syms x t b(n) phi(x)
+assume(n,"integer")
+L = 4
+phi(x) = piecewise(x<L/2,x,x>L/2,L/2);
+fplot(phi),grid on
+k = 0.1;
+N = 8
+Compute Fourier coefficients using phi(x) and L
+b(n) = simplify(2/L*int(phi(x)*sin(n*x*pi/L),0,L))
+Build Heat structure
+heatstruct = ustruct
+Embedding b(n) and k in the Heat structure
+heatstructEmb(x,t,n) = subs(ustruct,sym(["b_n" "L" "k"]),[b L k])
+Heat solution
+Solution = symsum(heatstructEmb,n,1,inf)
+Build the solution by summing up N terms of the series
+heatSolN = simplify(symsum(heatstructEmb,n,1,N))
+Visualize
+clf
+figure
+colormap jet
+tau = L^2/k;
+fsurf(heatSolN,[0 L 0 tau/4],"EdgeColor","interp")
+title("Final Heat Solution")
+xlabel('DISTANCE','FontSize',8);
+ylabel('TIME',"FontSize",8)
+zlabel('TEMPERATURE','FontSize',8)
+
+
+Lambda = 0
+T(t) = dsolve(subs(eqT,lambda,0));
+X(x) = dsolve(subs(eqX,lambda,0));
+U_0(x,t) = X(x)*T(t)
+X = subs(U_0,x,0) == 0
+Lambda = -alpha^2
+syms alpha
+T(t) = dsolve(subs(eqT,lambda,-alpha^2));
+X(x) = dsolve(subs(eqX,lambda,-alpha^2));
+U_N(x,t) = rewrite(X(x)*T(t),"sincos")
+X = subs(U_N,x,0) == 0
+Lambda = alpha^2
+T(t) = dsolve(subs(eqT,lambda,alpha^2));
+X(x) = dsolve(subs(eqX,lambda,alpha^2))
+U_P(x,t) = X(x)*T(t)
+X = subs(U_P,x,0) == 0
+
